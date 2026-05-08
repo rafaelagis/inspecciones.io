@@ -95,7 +95,7 @@
         urlCatastro: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR818ZjL3LrLFIwrl20srepq4-rhlfYMedQGlt5upQg1y7MlS9DpBbll1wGhGZULMMEqZv_cBvwgsz3/pub?output=csv",
 
         // Sheet de inspecciones
-        urlInspecciones: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTUfJWYk743N4Uuw51In5ar6cILMWQ2mk4EVY1gq3N8d5dWMeS790LT_B44B_UfIm8p4ffNQi7HuR1E/pub?output=csv",
+        urlInspecciones: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQOxfDO4sIW00dG2m44p4jiUx8dBWDCmnfEeFAeKepome4lpwLHtNLB3HINcSuzxPf1hopMWcR56XW9/pub?output=csv",
 
         // Vigencia en meses desde la fecha de emisión
         vigenciaMeses: 4,
@@ -222,9 +222,13 @@
 
             const popup = `
                 <div style="font-size:13px; line-height:1.6; min-width:180px">
-                    <b style="font-size:14px">${insp.nombre || "S/D"}</b><br>
-                    <span style="color:#666">${insp.direccion || "S/D"}</span><br>
-                    <span style="color:#666">${insp.rubro || "S/D"}</span><br>
+                    <b style="font-size:14px">${insp.propietario || "S/D"}</b><br>
+                     <span style="color:#666">${insp.horario || "S/D"}</span><br>
+                    <span style="color:#666">${insp.unidad || "S/D"}</span><br>
+                    <span style="color:#666">${insp.aforo || "S/D"}</span><br>
+                    <span style="color:#666">${insp.escribania || "S/D"}</span><br>
+                    <span style="color:#666">${insp.observaciones || "S/D"}</span><br>
+                    <span style="color:#666">${insp.plano || "S/D"}</span><br>
                     <hr style="margin:6px 0; border-color:#eee">
                     <b>Catastro:</b> ${idCatastro}<br>
                     <b>Emisión:</b> ${formatFecha(fechaEmision)}<br>
