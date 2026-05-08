@@ -154,16 +154,14 @@
             const popup = `
                 <div style="font-size:13px; line-height:1.6; min-width:180px">
                     <b style="font-size:14px">${insp.propietario || "S/D"}</b><br>
-                    <span style="color:#666">${insp.horario || "S/D"}</span><br>
-                    <span style="color:#666">${insp.unidad || "S/D"}</span><br>
-                    <span style="color:#666">${insp.aforo || "S/D"}</span><br>
-                    <span style="color:#666">${insp.escribania || "S/D"}</span><br>
-                    <span style="color:#666">${insp.observaciones || "S/D"}</span><br>
                     <span style="color:#666">${insp.plano || "S/D"}</span><br>
                     <hr style="margin:6px 0; border-color:#eee">
                     <b>Catastro:</b> ${idCatastro}<br>
-                    <b>Emisión:</b> ${formatFecha(fechaEmision)}<br>
-                    <b>Vencimiento:</b> ${formatFecha(vencimiento)}<br>
+                       <b>Unidad:</b> ${insp.unidad || "S/D"}<br>
+                    <b>Escribanía:</b> ${insp.escribania || "S/D"}<br>
+                    <b>Horario:</b> ${insp.horario || "S/D"}<br>
+                      <b>Aforo:</b> ${insp.aforo || "S/D"}<br>
+                      <b>Observaciones:</b> ${insp.observaciones || "S/D"}<br>
                     <b>Inspector:</b> <span style="color:${info.color}; font-weight:bold">${info.label}</span>
                 </div>`;
 
