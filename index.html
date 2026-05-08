@@ -65,7 +65,7 @@
     const INSPECTORES = {
         maxi:     { color: "#2980b9", label: "Maxi" },
         reinaldo: { color: "#e74c3c", label: "Reinaldo" },
-        guille:   { color: "#2ecc71", label: "Guille" }
+        guille:   { color: "#1C7341", label: "Guille" }
     };
 
     function normalizarInspector(valor) {
@@ -153,7 +153,7 @@
 
             const popup = `
                 <div style="font-size:13px; line-height:1.6; min-width:180px">
-                <b>Inspector:</b> <span style="color:${info.color}; font-weight:bold">${info.label}</span>
+                <b>Inspector:</b> <span style="color:${info.color}; font-weight:bold">${info.label}</span><br>
                     <b style="font-size:14px">${insp.propietario || "S/D"}</b><br>
                     <span style="color:#666">${insp.plano || "S/D"}</span><br>
                     <hr style="margin:6px 0; border-color:#eee">
