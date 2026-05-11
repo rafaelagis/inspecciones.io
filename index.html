@@ -9,50 +9,176 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: Arial, sans-serif; }
         #mapa { height: 100vh; width: 100%; }
-        #leyenda {
-            position: absolute; bottom: 30px; right: 10px; z-index: 1000;
-            background: white; padding: 12px 16px; border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.25); font-size: 13px; line-height: 1.8;
-        }
-        #leyenda h4 { margin-bottom: 6px; font-size: 13px; color: #333; }
-        .leyenda-item { display: flex; align-items: center; gap: 8px; }
-        .dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.3); flex-shrink: 0; }
-        #filtros {
-            position: absolute; top: 10px; right: 10px; z-index: 1000;
-            background: white; padding: 12px 16px; border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.25); font-size: 13px;
-        }
-        #filtros h4 { margin-bottom: 8px; color: #333; }
-        #filtros label { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; cursor: pointer; }
+
+        /* ── Contador ── */
         #contador {
-            position: absolute; top: 10px; left: 50px; z-index: 1000;
-            background: white; padding: 8px 14px; border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.25); font-size: 13px; color: #444;
+            position: absolute;
+            top: 10px;
+            left: 50px;
+            z-index: 1000;
+            background: white;
+            padding: 8px 14px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+            font-size: 13px;
+            color: #444;
+            max-width: calc(100vw - 130px); /* no solapar con filtros */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ── Panel flotante genérico (filtros y leyenda) ── */
+        .panel {
+            position: absolute;
+            z-index: 1000;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+            font-size: 13px;
+            overflow: hidden;
+        }
+
+        /* Cabecera del panel: título + botón toggle */
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            cursor: pointer;
+            user-select: none;
+            gap: 10px;
+        }
+        .panel-header h4 { color: #333; font-size: 13px; white-space: nowrap; }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            color: #555;
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        /* Cuerpo colapsable */
+        .panel-body {
+            padding: 0 14px 10px 14px;
+            transition: max-height 0.25s ease, opacity 0.25s ease;
+            max-height: 200px;
+            opacity: 1;
+        }
+        .panel-body.collapsed {
+            max-height: 0;
+            opacity: 0;
+            padding-bottom: 0;
+            pointer-events: none;
+        }
+
+        /* ── Filtros ── */
+        #filtros { top: 10px; right: 10px; }
+        #filtros label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+            cursor: pointer;
+        }
+
+        /* ── Leyenda ── */
+        #leyenda { bottom: 30px; right: 10px; }
+        #leyenda .panel-body { line-height: 1.8; }
+        .leyenda-item { display: flex; align-items: center; gap: 8px; }
+        .dot {
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+
+        /* ── MÓVIL (≤ 520px) ── */
+        @media (max-width: 520px) {
+
+            /* Contador más compacto */
+            #contador {
+                top: 8px;
+                left: 46px;
+                font-size: 11px;
+                padding: 6px 10px;
+                max-width: calc(100vw - 120px);
+            }
+
+            /* Filtros: arriba a la derecha, más angosto */
+            #filtros {
+                top: 8px;
+                right: 8px;
+                max-width: 155px;
+            }
+
+            /* Leyenda: abajo a la derecha */
+            #leyenda {
+                bottom: 20px;
+                right: 8px;
+                max-width: 145px;
+            }
+
+            /* Paneles colapsados por defecto en móvil
+               (se maneja con JS al cargar) */
         }
     </style>
 </head>
 <body>
     <div id="mapa"></div>
+
     <div id="contador">Cargando inspecciones...</div>
 
-    <div id="filtros">
-        <h4>Filtrar por inspector</h4>
-        <label><input type="checkbox" id="chk-maxi" checked> <span style="color:#1a6fb5">● Maxi</span></label>
-        <label><input type="checkbox" id="chk-reinaldo" checked> <span style="color:#c0392b">● Reinaldo</span></label>
-        <label><input type="checkbox" id="chk-guille" checked> <span style="color:#1C7341">● Guille</span></label>
+    <!-- Filtros -->
+    <div id="filtros" class="panel">
+        <div class="panel-header" onclick="togglePanel('filtros')">
+            <h4>Filtrar por inspector</h4>
+            <button class="toggle-btn" id="btn-filtros">▲</button>
+        </div>
+        <div class="panel-body" id="body-filtros">
+            <label><input type="checkbox" id="chk-maxi" checked> <span style="color:#1a6fb5">● Maxi</span></label>
+            <label><input type="checkbox" id="chk-reinaldo" checked> <span style="color:#c0392b">● Reinaldo</span></label>
+            <label><input type="checkbox" id="chk-guille" checked> <span style="color:#1C7341">● Guille</span></label>
+        </div>
     </div>
 
-    <div id="leyenda">
-        <h4>Inspector</h4>
-        <div class="leyenda-item"><div class="dot" style="background:#2980b9"></div> Maxi</div>
-        <div class="leyenda-item"><div class="dot" style="background:#e74c3c"></div> Reinaldo</div>
-        <div class="leyenda-item"><div class="dot" style="background:#1C7341"></div> Guille</div>
+    <!-- Leyenda -->
+    <div id="leyenda" class="panel">
+        <div class="panel-header" onclick="togglePanel('leyenda')">
+            <h4>Inspector</h4>
+            <button class="toggle-btn" id="btn-leyenda">▲</button>
+        </div>
+        <div class="panel-body" id="body-leyenda">
+            <div class="leyenda-item"><div class="dot" style="background:#2980b9"></div> Maxi</div>
+            <div class="leyenda-item"><div class="dot" style="background:#e74c3c"></div> Reinaldo</div>
+            <div class="leyenda-item"><div class="dot" style="background:#1C7341"></div> Guille</div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-
     <script>
+    // ── Toggle de paneles ────────────────────────────────────────
+    function togglePanel(id) {
+        const body = document.getElementById('body-' + id);
+        const btn  = document.getElementById('btn-' + id);
+        const collapsed = body.classList.toggle('collapsed');
+        btn.textContent = collapsed ? '▼' : '▲';
+    }
+
+    // En móvil, colapsar paneles al inicio para ganar espacio
+    if (window.innerWidth <= 520) {
+        ['filtros', 'leyenda'].forEach(function(id) {
+            document.getElementById('body-' + id).classList.add('collapsed');
+            document.getElementById('btn-' + id).textContent = '▼';
+        });
+    }
+
+    // ── CONFIG ───────────────────────────────────────────────────
     const CONFIG = {
         urlCatastro: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR818ZjL3LrLFIwrl20srepq4-rhlfYMedQGlt5upQg1y7MlS9DpBbll1wGhGZULMMEqZv_cBvwgsz3/pub?output=csv",
         urlInspecciones: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQOxfDO4sIW00dG2m44p4jiUx8dBWDCmnfEeFAeKepome4lpwLHtNLB3HINcSuzxPf1hopMWcR56XW9/pub?output=csv",
@@ -61,7 +187,6 @@
         zoom: 14
     };
 
-    // Colores y normalización por inspector
     const INSPECTORES = {
         maxi:     { color: "#2980b9", label: "Maxi" },
         reinaldo: { color: "#e74c3c", label: "Reinaldo" },
@@ -77,11 +202,25 @@
         return null;
     }
 
+    // ── Mapa ─────────────────────────────────────────────────────
     const mapa = L.map('mapa', { preferCanvas: true }).setView(CONFIG.centro, CONFIG.zoom);
-    L.tileLayer(
-        'http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}',
-        { attribution: 'Leaflet | IGN', minZoom: 3, maxZoom: 25 }
-    ).addTo(mapa);
+
+    const baseMaps = {
+        "Satelital": L.tileLayer(
+            'http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}',
+            { attribution: 'Leaflet | Google Satellite', minZoom: 3, maxZoom: 25 }
+        ),
+        "Argenmap": L.tileLayer(
+            'https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG%3A3857@png/{z}/{x}/{-y}.png',
+            { attribution: 'Leaflet | IGN + OpenStreetMap', minZoom: 3, maxZoom: 25 }
+        )
+    };
+
+    // Satelital activo por defecto
+    baseMaps["Satelital"].addTo(mapa);
+
+    // Control de capas base (arriba a la izquierda, debajo del zoom)
+    L.control.layers(baseMaps, null, { position: 'topleft', collapsed: false }).addTo(mapa);
 
     const capas = {
         maxi:     L.layerGroup(),
@@ -90,6 +229,7 @@
     };
     Object.values(capas).forEach(c => c.addTo(mapa));
 
+    // ── Helpers ──────────────────────────────────────────────────
     function parsearFecha(str) {
         if (!str) return null;
         str = str.trim();
@@ -105,13 +245,14 @@
         return fecha.toLocaleDateString('es-AR');
     }
 
+    // ── Datos ────────────────────────────────────────────────────
     function cargarDatos() {
         Papa.parse(CONFIG.urlCatastro, {
             download: true, header: true, skipEmptyLines: true,
             complete: function(resCatastro) {
                 const coordsMap = {};
                 resCatastro.data.forEach(function(fila) {
-                    const id = String(fila.catastro || "").trim();
+                    const id  = String(fila.catastro || "").trim();
                     const lat = parseFloat(fila.ycoord);
                     const lng = parseFloat(fila.xcoord);
                     if (id && !isNaN(lat) && !isNaN(lng)) coordsMap[id] = { lat, lng };
@@ -119,7 +260,7 @@
                 Papa.parse(CONFIG.urlInspecciones, {
                     download: true, header: true, skipEmptyLines: true,
                     complete: function(resInsp) { dibujarInspecciones(resInsp.data, coordsMap); },
-                    error: function(err) {
+                    error: function() {
                         document.getElementById('contador').textContent = "Error al cargar inspecciones.";
                     }
                 });
@@ -134,6 +275,9 @@
         let total = 0, sinCoords = 0, sinInspector = 0;
         const conteo = { maxi: 0, reinaldo: 0, guille: 0 };
         Object.values(capas).forEach(c => c.clearLayers());
+
+        // Ancho de popup adaptado al dispositivo
+        const popupAncho = window.innerWidth <= 520 ? 200 : 220;
 
         inspecciones.forEach(function(insp) {
             const idCatastro = String(insp.catastro || "").trim();
@@ -152,17 +296,17 @@
             if (vencimiento) vencimiento.setMonth(vencimiento.getMonth() + CONFIG.vigenciaMeses);
 
             const popup = `
-                <div style="font-size:13px; line-height:1.6; min-width:180px">
-                <b>Inspector:</b> <span style="color:${info.color}; font-weight:bold">${info.label}</span><br>
-                <b>Propietario:</b> ${insp.propietario || "S/D"}<br>
-                    <span style="color:#666">${insp.plano || "S/D"}</span><br>
-                    <hr style="margin:6px 0; border-color:#eee">
+                <div style="font-size:13px;line-height:1.6;min-width:${popupAncho}px">
+                    <b>Inspector:</b> <span style="color:${info.color};font-weight:bold">${info.label}</span><br>
+                    <b>Propietario:</b> ${insp.propietario || "S/D"}<br>
+                    <span style="color:#666">${insp.plano || "S/D"}</span>
+                    <hr style="margin:6px 0;border-color:#eee">
                     <b>Catastro:</b> ${idCatastro}<br>
-                       <b>Unidad:</b> ${insp.unidad || "S/D"}<br>
+                    <b>Unidad:</b> ${insp.unidad || "S/D"}<br>
                     <b>Escribanía:</b> ${insp.escribania || "S/D"}<br>
                     <b>Horario:</b> ${insp.horario || "S/D"}<br>
-                      <b>Aforo:</b> ${insp.aforo || "S/D"}<br>
-                      <b>Observaciones:</b> ${insp.observaciones || "S/D"}<br>
+                    <b>Aforo:</b> ${insp.aforo || "S/D"}<br>
+                    <b>Observaciones:</b> ${insp.observaciones || "S/D"}
                 </div>`;
 
             L.circleMarker([coords.lat, coords.lng], {
@@ -176,15 +320,26 @@
             .addTo(capas[inspectorKey]);
         });
 
-        document.getElementById('contador').innerHTML =
-            `<b>${total}</b> inspecciones —
-             <span style="color:#1a6fb5">● ${conteo.maxi} Maxi</span> ·
-             <span style="color:#c0392b">● ${conteo.reinaldo} Reinaldo</span> ·
-             <span style="color:#27ae60">● ${conteo.guille} Guille</span>` +
-            (sinCoords > 0 ? ` · <span style="color:#999">${sinCoords} sin coordenadas</span>` : "") +
-            (sinInspector > 0 ? ` · <span style="color:#999">${sinInspector} sin inspector</span>` : "");
+        // Contador: texto completo en desktop, abreviado en móvil
+        const esMobil = window.innerWidth <= 520;
+        if (esMobil) {
+            document.getElementById('contador').innerHTML =
+                `<b>${total}</b> insp. — ` +
+                `<span style="color:#1a6fb5">M:${conteo.maxi}</span> · ` +
+                `<span style="color:#c0392b">R:${conteo.reinaldo}</span> · ` +
+                `<span style="color:#27ae60">G:${conteo.guille}</span>`;
+        } else {
+            document.getElementById('contador').innerHTML =
+                `<b>${total}</b> inspecciones — ` +
+                `<span style="color:#1a6fb5">● ${conteo.maxi} Maxi</span> · ` +
+                `<span style="color:#c0392b">● ${conteo.reinaldo} Reinaldo</span> · ` +
+                `<span style="color:#27ae60">● ${conteo.guille} Guille</span>` +
+                (sinCoords    > 0 ? ` · <span style="color:#999">${sinCoords} sin coords</span>`    : "") +
+                (sinInspector > 0 ? ` · <span style="color:#999">${sinInspector} sin inspector</span>` : "");
+        }
     }
 
+    // ── Filtros ──────────────────────────────────────────────────
     document.getElementById('chk-maxi').addEventListener('change', function() {
         this.checked ? capas.maxi.addTo(mapa) : mapa.removeLayer(capas.maxi);
     });
@@ -195,6 +350,7 @@
         this.checked ? capas.guille.addTo(mapa) : mapa.removeLayer(capas.guille);
     });
 
+    // ── Geolocalización ──────────────────────────────────────────
     if (navigator.geolocation) {
         const puntoUsuario = L.circleMarker([0, 0], {
             radius: 9, fillColor: "#2196F3", color: "#ffffff", weight: 2.5, fillOpacity: 1
@@ -230,6 +386,7 @@
         btnUbicacion.addTo(mapa);
     }
 
+    // ── Arrancar ─────────────────────────────────────────────────
     cargarDatos();
     </script>
 </body>
